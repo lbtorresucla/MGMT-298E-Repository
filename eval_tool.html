@@ -116,7 +116,10 @@
 
     try {
       log('Reading ' + file.name + ' ...');
-      const rows = parseTSV(await readFile(file));
+      const rawText = await readFile(file);
+      log('First 200 chars: ' + JSON.stringify(rawText.slice(0, 200)));
+      const rows = parseTSV(rawText);
+      log('Headers found: ' + JSON.stringify(Object.keys(rows[0] ?? {})));
       log(`Loaded ${rows.length} reviews. Calling ${MODEL}...\n`);
 
       let matches = 0;
