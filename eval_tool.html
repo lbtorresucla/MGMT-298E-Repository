@@ -48,7 +48,8 @@
   }
 
   function parseTSV(text) {
-    const lines = text.trim().split('\n');
+    const cleaned = text.replace(/^﻿/, '').replace(/\r/g, '');
+    const lines = cleaned.trim().split('\n').filter(l => l.trim());
     const headers = lines[0].split('\t').map(h => h.trim());
     return lines.slice(1).map(line => {
       const cols = line.split('\t');
@@ -126,7 +127,7 @@
         const match     = llm_score === row.hand_label ? 'TRUE' : 'FALSE';
         if (match === 'TRUE') matches++;
         results.push({ ...row, llm_score, match });
-        log(`#${row.review_number.padStart(2, ' ')}  hand=${row.hand_label}  llm=${llm_score}  ${match}`);
+        log(`#${(row.review_number ?? '?').padStart(2, ' ')}  hand=${row.hand_label}  llm=${llm_score}  ${match}`);
       }
 
       const headers = ['review_number','review_id','review_title','review_text','hand_label','llm_score','match'];
