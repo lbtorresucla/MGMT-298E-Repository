@@ -156,9 +156,9 @@
     <!-- Config -->
     <div class="card">
         <div class="card-title">Configuration</div>
-        <label for="apiKey">Anthropic API Key</label>
+        <label for="apiKey">OpenAI API Key</label>
         <div class="key-row">
-            <input type="password" id="apiKey" placeholder="sk-ant-...">
+            <input type="password" id="apiKey" placeholder="sk-proj-...">
             <button class="btn-toggle" onclick="toggleKey()">Show / Hide</button>
         </div>
     </div>
@@ -202,7 +202,15 @@
     </div>
 </div>
 
+<script src="config.js" onerror="void 0"></script>
 <script>
+    // Auto-fill key from config.js if present
+    window.addEventListener('DOMContentLoaded', () => {
+        if (window.OPENAI_API_KEY) {
+            document.getElementById('apiKey').value = window.OPENAI_API_KEY;
+        }
+    });
+
     function toggleKey() {
         const k = document.getElementById('apiKey');
         k.type = k.type === 'password' ? 'text' : 'password';
@@ -239,32 +247,32 @@
 
     async function api(system, user, tokens = 900) {
         const key = document.getElementById('apiKey').value.trim();
-        const r = await fetch('https://api.anthropic.com/v1/messages', {
+        const r = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': key,
-                'anthropic-version': '2023-06-01',
-                'anthropic-dangerous-direct-browser-access': 'true'
+                'Authorization': `Bearer ${key}`
             },
             body: JSON.stringify({
-                model: 'claude-sonnet-4-6',
+                model: 'gpt-4o',
                 max_tokens: tokens,
-                system,
-                messages: [{ role: 'user', content: user }]
+                messages: [
+                    { role: 'system', content: system },
+                    { role: 'user',   content: user }
+                ]
             })
         });
         if (!r.ok) {
             const e = await r.json().catch(() => ({}));
             throw new Error(e.error?.message || `HTTP ${r.status}`);
         }
-        return (await r.json()).content[0].text;
+        return (await r.json()).choices[0].message.content;
     }
 
     async function run() {
         const bullet = document.getElementById('bulletInput').value.trim();
         const key    = document.getElementById('apiKey').value.trim();
-        if (!key)    { alert('Please enter your Anthropic API key.'); return; }
+        if (!key)    { alert('Please enter your OpenAI API key.'); return; }
         if (!bullet) { alert('Please enter a resume bullet.'); return; }
 
         // Reset UI
