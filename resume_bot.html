@@ -269,6 +269,27 @@
         return (await r.json()).choices[0].message.content;
     }
 
+    const STRONG_VERBS = {
+      "Analytics_Problem_Solving": ["Adapted","Adopted","Advanced","Advised","Alleviated","Analyzed","Anticipated","Clarified","Coached","Communicated","Conducted","Coordinated","Critiqued","Developed","Enabled","Encouraged","Evaluated","Explained","Facilitated","Focused","Guided","Identified","Individualized","Informed","Instilled","Instructed","Motivated","Persuaded","Simulated","Solved","Stimulated","Strategized","Taught","Tested","Trained","Transmitted","Tutored"],
+      "Communication_Interpersonal": ["Addressed","Arbitrated","Arranged","Articulated","Conveyed","Convinced","Corresponded","Debated","Defined","Developed","Discussed","Edited","Explained","Expressed","Influenced","Interpreted","Interviewed","Lectured","Listened","Mediated","Moderated","Negotiated","Persuaded","Presented","Promoted","Proposed","Publicized","Reconciled","Referred","Reported","Resolved","Responded","Spoke","Suggested","Summarized","Translated","Wrote"],
+      "Creative_Innovation": ["Acted","Adapted","Adopted","Began","Combined","Composed","Conceptualized","Created","Customized","Designed","Directed","Displayed","Drew","Entertained","Established","Fashioned","Formulated","Founded","Illustrated","Initiated","Instituted","Integrated","Introduced","Invented","Marketed","Originated","Performed","Photographed","Planned","Revitalized","Shaped"],
+      "Finance_Quantitative": ["Accrued","Accumulated","Administered","Adjusted","Allocated","Analyzed","Appraised","Assessed","Audited","Balanced","Budgeted","Calculated","Computed","Conserved","Corrected","Determined","Developed","Estimated","Forecasted","Managed","Marketed","Measured","Modeled","Netted","Planned","Prepared","Programmed","Projected","Qualified","Quantified","Reconciled","Reduced","Researched","Retrieved"],
+      "Mentoring": ["Adapted","Advocated","Aided","Answered","Arranged","Assessed","Clarified","Coached","Collaborated","Contributed","Cooperated","Counseled","Demonstrated","Diagnosed","Educated","Encouraged","Ensured","Expedited","Facilitated","Familiarized","Furthered","Guided","Insured","Intervened","Mentored","Motivated","Prevented","Referred","Rehabilitated","Represented","Resolved","Simplified","Supplied","Supported","Volunteered"],
+      "Leadership_Teamwork": ["Achieved","Accomplished","Administered","Advanced","Analyzed","Appointed","Approved","Assigned","Attained","Authorized","Chaired","Consolidated","Controlled","Converted","Coordinated","Decided","Delegated","Developed","Directed","Eliminated","Enhanced","Established","Executed","Generated","Handled","Headed","Hired","Improved","Incorporated","Increased","Initiated","Led","Managed","Merged","Motivated","Organized","Oversaw","Planned","Prioritized","Produced","Recommended","Reorganized","Replaced","Restored","Reviewed","Scheduled","Secured","Standardized","Supervised","Updated","Validated"],
+      "Research": ["Accumulated","Acquired","Analyzed","Clarified","Collected","Compared","Conducted","Critiqued","Detected","Determined","Diagnosed","Evaluated","Examined","Experimented","Explored","Extracted","Formulated","Gathered","Inspected","Interviewed","Investigated","Located","Measured","Researched","Reviewed","Searched","Solved","Summarized","Surveyed","Systematized","Tested"],
+      "Organizational": ["Accelerated","Accumulated","Adopted","Approved","Arranged","Catalogued","Categorized","Charted","Classified","Coded","Collected","Compiled","Corrected","Corresponded","Distributed","Executed","Organized"],
+      "Technical": ["Adapted","Applied","Assembled","Built","Calculated","Computed","Constructed","Converted","Debugged","Designed","Determined","Developed","Engineered","Fabricated","Installed","Maintained","Operated","Overhauled","Programmed","Rectified","Regulated","Remodeled","Repaired","Replaced","Restored","Solved","Specialized","Standardized","Studied","Upgraded","Utilized"]
+    };
+
+    // Flatten all verbs into a deduplicated list for the prompt
+    const ALL_VERBS = [...new Set(Object.values(STRONG_VERBS).flat())].sort();
+    const VERB_LIST = ALL_VERBS.join(', ');
+
+    // Build a formatted category breakdown for the prompt
+    const VERB_CATEGORIES = Object.entries(STRONG_VERBS)
+        .map(([cat, verbs]) => `${cat.replace(/_/g,' ')}: ${verbs.join(', ')}`)
+        .join('\n');
+
     async function run() {
         const bullet = document.getElementById('bulletInput').value.trim();
         const key    = document.getElementById('apiKey').value.trim();
@@ -356,12 +377,16 @@ Keep it tight — 4–6 bullet points.`,
                 rewrite = await api(
                     `You are an elite MBB (McKinsey / Bain / BCG) resume writer.
 Rules:
-1. Open with a strong action verb (Led, Drove, Delivered, Spearheaded, Engineered, Accelerated…).
+1. You MUST open with a verb drawn from the approved strong-verb list below — do not use any verb that is not on this list.
+   Choose the verb that best fits the nature of the accomplishment (leadership, finance, research, etc.).
 2. Include quantified impact where the original supports it; use [X%] / [$Xk] placeholders where data is unknown — do NOT invent numbers.
 3. Close with strategic context (why it mattered / business outcome).
 4. Maximum 25–30 words, one line.
 5. Past tense for past roles, present for current.
-Output ONLY the rewritten bullet — no preamble, no explanation.`,
+Output ONLY the rewritten bullet — no preamble, no explanation.
+
+APPROVED STRONG VERBS (grouped by category — pick the most fitting one):
+${VERB_CATEGORIES}`,
                     rewriteCtx
                 );
                 step('s3', 'done');
