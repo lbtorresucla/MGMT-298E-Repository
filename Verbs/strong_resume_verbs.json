@@ -1,0 +1,82 @@
+{
+  "Analytics_Problem_Solving": [
+    "Adapted", "Adopted", "Advanced", "Advised", "Alleviated", "Analyzed",
+    "Anticipated", "Clarified", "Coached", "Communicated", "Conducted",
+    "Coordinated", "Critiqued", "Developed", "Enabled", "Encouraged",
+    "Evaluated", "Explained", "Facilitated", "Focused", "Guided",
+    "Identified", "Individualized", "Informed", "Instilled", "Instructed",
+    "Motivated", "Persuaded", "Simulated", "Solved", "Stimulated",
+    "Strategized", "Taught", "Tested", "Trained", "Transmitted", "Tutored"
+  ],
+  "Communication_Interpersonal": [
+    "Addressed", "Arbitrated", "Arranged", "Articulated", "Conveyed",
+    "Convinced", "Corresponded", "Debated", "Defined", "Developed",
+    "Discussed", "Edited", "Explained", "Expressed", "Influenced",
+    "Interpreted", "Interviewed", "Lectured", "Listened", "Mediated",
+    "Moderated", "Negotiated", "Persuaded", "Presented", "Promoted",
+    "Proposed", "Publicized", "Reconciled", "Referred", "Reported",
+    "Resolved", "Responded", "Spoke", "Suggested", "Summarized",
+    "Translated", "Wrote"
+  ],
+  "Creative_Innovation": [
+    "Acted", "Adapted", "Adopted", "Began", "Combined", "Composed",
+    "Conceptualized", "Created", "Customized", "Designed", "Directed",
+    "Displayed", "Drew", "Entertained", "Established", "Fashioned",
+    "Formulated", "Founded", "Illustrated", "Initiated", "Instituted",
+    "Integrated", "Introduced", "Invented", "Marketed", "Originated",
+    "Performed", "Photographed", "Planned", "Revitalized", "Shaped"
+  ],
+  "Finance_Quantitative": [
+    "Accrued", "Accumulated", "Administered", "Adjusted", "Allocated",
+    "Analyzed", "Appraised", "Assessed", "Audited", "Balanced",
+    "Budgeted", "Calculated", "Computed", "Conserved", "Corrected",
+    "Determined", "Developed", "Estimated", "Forecasted", "Managed",
+    "Marketed", "Measured", "Modeled", "Netted", "Planned",
+    "Prepared", "Programmed", "Projected", "Qualified", "Quantified",
+    "Reconciled", "Reduced", "Researched", "Retrieved"
+  ],
+  "Mentoring": [
+    "Adapted", "Advocated", "Aided", "Answered", "Arranged", "Assessed",
+    "Clarified", "Coached", "Collaborated", "Contributed", "Cooperated",
+    "Counseled", "Demonstrated", "Diagnosed", "Educated", "Encouraged",
+    "Ensured", "Expedited", "Facilitated", "Familiarized", "Furthered",
+    "Guided", "Insured", "Intervened", "Mentored", "Motivated",
+    "Prevented", "Referred", "Rehabilitated", "Represented", "Resolved",
+    "Simplified", "Supplied", "Supported", "Volunteered"
+  ],
+  "Leadership_Teamwork": [
+    "Achieved", "Accomplished", "Administered", "Advanced", "Analyzed",
+    "Appointed", "Approved", "Assigned", "Attained", "Authorized",
+    "Chaired", "Consolidated", "Controlled", "Converted", "Coordinated",
+    "Decided", "Delegated", "Developed", "Directed", "Eliminated",
+    "Enhanced", "Established", "Executed", "Generated", "Handled",
+    "Headed", "Hired", "Improved", "Incorporated", "Increased",
+    "Initiated", "Led", "Managed", "Merged", "Motivated", "Organized",
+    "Oversaw", "Planned", "Prioritized", "Produced", "Recommended",
+    "Reorganized", "Replaced", "Restored", "Reviewed", "Scheduled",
+    "Secured", "Standardized", "Supervised", "Updated", "Validated"
+  ],
+  "Research": [
+    "Accumulated", "Acquired", "Analyzed", "Clarified", "Collected",
+    "Compared", "Conducted", "Critiqued", "Detected", "Determined",
+    "Diagnosed", "Evaluated", "Examined", "Experimented", "Explored",
+    "Extracted", "Formulated", "Gathered", "Inspected", "Interviewed",
+    "Investigated", "Located", "Measured", "Researched", "Reviewed",
+    "Searched", "Solved", "Summarized", "Surveyed", "Systematized",
+    "Tested"
+  ],
+  "Organizational": [
+    "Accelerated", "Accumulated", "Adopted", "Approved", "Arranged",
+    "Catalogued", "Categorized", "Charted", "Classified", "Coded",
+    "Collected", "Compiled", "Corrected", "Corresponded", "Distributed",
+    "Executed", "Organized"
+  ],
+  "Technical": [
+    "Adapted", "Applied", "Assembled", "Built", "Calculated", "Computed",
+    "Constructed", "Converted", "Debugged", "Designed", "Determined",
+    "Developed", "Engineered", "Fabricated", "Installed", "Maintained",
+    "Operated", "Overhauled", "Programmed", "Rectified", "Regulated",
+    "Remodeled", "Repaired", "Replaced", "Restored", "Solved",
+    "Specialized", "Standardized", "Studied", "Upgraded", "Utilized"
+  ]
+}
