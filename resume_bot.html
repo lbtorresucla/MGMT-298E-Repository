@@ -146,6 +146,43 @@
             margin-top: 14px; transition: opacity 0.2s;
         }
         .btn-copy:hover { opacity: 0.88; }
+
+        /* ── Clarification card ── */
+        .clarify-card {
+            background: #fff;
+            border: 2px solid #ffa000;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 24px rgba(255,160,0,0.15);
+        }
+        .clarify-header {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+        }
+        .clarify-icon { font-size: 22px; }
+        .clarify-title { font-size: 17px; font-weight: 700; color: #e65100; }
+        .clarify-subtitle { font-size: 13px; color: #777; margin-bottom: 18px; }
+        .clarify-questions { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+        .clarify-q label { color: #333; font-weight: 600; font-size: 13px; margin-bottom: 5px; }
+        .clarify-q input {
+            border-color: #ffcc80;
+        }
+        .clarify-q input:focus { border-color: #ffa000; }
+        .clarify-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-clarify-continue {
+            background: linear-gradient(135deg, #ff9800, #e65100);
+            color: white; border: none; border-radius: 8px;
+            padding: 11px 24px; font-size: 14px; font-weight: 600;
+            cursor: pointer; font-family: inherit; transition: opacity 0.2s;
+        }
+        .btn-clarify-continue:hover { opacity: 0.9; }
+        .btn-clarify-skip {
+            background: transparent; color: #999; border: 2px solid #e0e0e0;
+            border-radius: 8px; padding: 11px 20px; font-size: 13px;
+            cursor: pointer; font-family: inherit; transition: all 0.2s;
+        }
+        .btn-clarify-skip:hover { border-color: #bbb; color: #666; }
+        .p-box.paused { background: #fff8e1; color: #f57f17; border-color: #ffa000; }
     </style>
 </head>
 <body>
@@ -188,6 +225,20 @@
         <div class="loop-badge" id="loopBadge"></div>
         <div class="status-bar processing" id="statusBar">Starting pipeline…</div>
         <div class="agent-log" id="agentLog"></div>
+    </div>
+
+    <!-- Clarification card (shown when bullet is vague) -->
+    <div class="clarify-card" id="clarifyCard" style="display:none">
+        <div class="clarify-header">
+            <span class="clarify-icon">💬</span>
+            <span class="clarify-title">A few quick questions</span>
+        </div>
+        <p class="clarify-subtitle">Your bullet is missing some details that would make it much stronger. Answer what you can — anything you leave blank will use a placeholder.</p>
+        <div class="clarify-questions" id="clarifyQuestions"></div>
+        <div class="clarify-actions">
+            <button class="btn-clarify-continue" onclick="submitClarification()">Continue with my answers</button>
+            <button class="btn-clarify-skip" onclick="skipClarification()">Skip — continue as-is</button>
+        </div>
     </div>
 
     <!-- Final output -->
@@ -290,6 +341,38 @@
         .map(([cat, verbs]) => `${cat.replace(/_/g,' ')}: ${verbs.join(', ')}`)
         .join('\n');
 
+    // ── Clarification helpers ────────────────────────────────────────────────
+    let _resolveClarify = null;
+
+    function showClarification(questions) {
+        return new Promise(resolve => {
+            _resolveClarify = resolve;
+            const container = document.getElementById('clarifyQuestions');
+            container.innerHTML = questions.map((q, i) => `
+                <div class="clarify-q">
+                    <label>${q}</label>
+                    <input type="text" id="cq_${i}" placeholder="Your answer (or leave blank to skip)">
+                </div>`).join('');
+            document.getElementById('clarifyCard').style.display = 'block';
+            document.getElementById('clarifyCard').scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+
+    function submitClarification() {
+        const inputs = document.querySelectorAll('[id^="cq_"]');
+        const pairs  = Array.from(inputs).map((inp, i) => {
+            const q = inp.previousElementSibling.textContent.trim();
+            return inp.value.trim() ? `${q} → ${inp.value.trim()}` : null;
+        }).filter(Boolean);
+        document.getElementById('clarifyCard').style.display = 'none';
+        if (_resolveClarify) _resolveClarify(pairs.join('\n'));
+    }
+
+    function skipClarification() {
+        document.getElementById('clarifyCard').style.display = 'none';
+        if (_resolveClarify) _resolveClarify('');
+    }
+
     async function run() {
         const bullet = document.getElementById('bulletInput').value.trim();
         const key    = document.getElementById('apiKey').value.trim();
@@ -299,6 +382,7 @@
         // Reset UI
         document.getElementById('pipelineCard').style.display = 'block';
         document.getElementById('outputCard').style.display   = 'none';
+        document.getElementById('clarifyCard').style.display  = 'none';
         document.getElementById('agentLog').innerHTML = '';
         document.getElementById('loopBadge').style.display = 'none';
         document.getElementById('runBtn').disabled = true;
@@ -352,6 +436,28 @@ Keep it tight — 4–6 bullet points.`,
             step('s2', 'done');
             addLog('3 · Impact Quantifier Agent', a3);
 
+            // ── Clarification step (if bullet is vague) ───────────────────
+            setStatus('Checking whether more details are needed from you…');
+            let userContext = '';
+            try {
+                const clarifyRaw = await api(
+                    `You are a resume coach. Given a bullet's diagnostic and quantification analysis, decide if the user needs to be asked for more information before rewriting.
+If the bullet already has enough specifics, output exactly: {"questions":[]}
+If key details are missing (metrics, scale, outcome, role context), output 2–3 SHORT questions that will most improve the rewrite. Focus only on information the user would actually know (their own numbers, outcomes, team size, etc.).
+Output ONLY valid JSON. Example: {"questions":["How many people did you manage?","What was the % cost reduction?"]}`,
+                    `Original bullet: "${bullet}"\nDiagnostic:\n${a2}\nQuantification notes:\n${a3}`
+                );
+                const parsed = JSON.parse(clarifyRaw.match(/\{[\s\S]*\}/)[0]);
+                if (parsed.questions && parsed.questions.length > 0) {
+                    step('s3', 'paused');
+                    setStatus('Waiting for your answers before rewriting…', 'processing');
+                    userContext = await showClarification(parsed.questions);
+                    if (userContext) addLog('User-provided details', userContext);
+                }
+            } catch (_) {
+                // If question generation fails, continue without clarification
+            }
+
             // ── Rewrite loop (Agents 4 → 5 → 6) ─────────────────────────
             let rewrite = '';
             let judgeRaw = '';
@@ -370,9 +476,10 @@ Keep it tight — 4–6 bullet points.`,
                 // Agent 4: MBB Rewrite
                 step('s3', isRetry ? 'retry' : 'active');
                 setStatus(`MBB Rewrite Agent — drafting bullet (attempt ${attempt})…`);
+                const userCtxBlock = userContext ? `\nUser-provided details: ${userContext}` : '';
                 const rewriteCtx = isRetry
-                    ? `Original: "${bullet}"\nPrevious draft: "${rewrite}"\nJudge feedback: ${prevFeedback}\nQuantification notes: ${a3}\nRewrite with improvements:`
-                    : `Original: "${bullet}"\nDiagnostic: ${a2}\nQuantification notes: ${a3}\nWrite the improved bullet:`;
+                    ? `Original: "${bullet}"\nPrevious draft: "${rewrite}"\nJudge feedback: ${prevFeedback}\nQuantification notes: ${a3}${userCtxBlock}\nRewrite with improvements:`
+                    : `Original: "${bullet}"\nDiagnostic: ${a2}\nQuantification notes: ${a3}${userCtxBlock}\nWrite the improved bullet:`;
 
                 rewrite = await api(
                     `You are an elite MBB (McKinsey / Bain / BCG) resume writer.
