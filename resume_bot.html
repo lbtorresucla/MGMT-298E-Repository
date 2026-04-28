@@ -443,8 +443,15 @@ Keep it tight — 4–6 bullet points.`,
                 const clarifyRaw = await api(
                     `You are a resume coach. Given a bullet's diagnostic and quantification analysis, decide if the user needs to be asked for more information before rewriting.
 If the bullet already has enough specifics, output exactly: {"questions":[]}
-If key details are missing (metrics, scale, outcome, role context), output 2–3 SHORT questions that will most improve the rewrite. Focus only on information the user would actually know (their own numbers, outcomes, team size, etc.).
-Output ONLY valid JSON. Example: {"questions":["How many people did you manage?","What was the % cost reduction?"]}`,
+If key details are missing, output 2–3 questions that will most improve the rewrite. Each question MUST include concrete examples drawn from this list to jog the user's memory:
+- Financial impact: money saved, cost reduced, revenue generated, budget managed, deals closed, ROI
+- Efficiency: time saved, process speed improvement, error rate reduction, automation coverage
+- Scale: team size managed, number of clients/users, volume of transactions, geographic reach
+- Growth: % increase in sales, user growth, market share gained, retention improvement
+- Output: number of projects delivered, reports produced, features shipped, initiatives launched
+Write each question in plain conversational language and embed the most relevant examples in parentheses.
+Focus only on information the user would actually know (their own numbers, outcomes, team size, etc.).
+Output ONLY valid JSON. Example: {"questions":["What was the financial impact? (e.g. cost savings, revenue generated, budget managed)","How large was the scale? (e.g. team size, number of users, transaction volume)"]}`,
                     `Original bullet: "${bullet}"\nDiagnostic:\n${a2}\nQuantification notes:\n${a3}`
                 );
                 const parsed = JSON.parse(clarifyRaw.match(/\{[\s\S]*\}/)[0]);
