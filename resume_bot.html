@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBB Resume Bullet Improver</title>
+    <style>
+        :root {
+            --purple: #764ba2;
+            --purple-light: #9b6bbf;
+            --blue: #667eea;
+            --green: #27ae60;
+            --orange: #f39c12;
+            --red: #e74c3c;
+            --pink: #e91e63;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 24px 16px;
+        }
+        .container { max-width: 860px; margin: 0 auto; }
+
+        h1 { color: white; text-align: center; font-size: 2rem; margin-bottom: 6px; }
+        .subtitle { color: rgba(255,255,255,0.85); text-align: center; margin-bottom: 24px; font-size: 15px; }
+
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.13);
+        }
+        .card-title { font-size: 17px; font-weight: 700; color: #2c3e50; margin-bottom: 16px; }
+
+        label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+
+        input[type="password"], input[type="text"] {
+            width: 100%; border: 2px solid #e0e0e0; border-radius: 8px;
+            padding: 10px 14px; font-size: 14px; font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        input:focus { outline: none; border-color: var(--purple); }
+
+        .key-row { display: flex; gap: 8px; align-items: stretch; }
+        .key-row input { flex: 1; }
+        .btn-toggle {
+            background: #f0f0f0; color: #555; border: 2px solid #e0e0e0;
+            border-radius: 8px; padding: 0 16px; font-size: 13px;
+            cursor: pointer; white-space: nowrap; font-family: inherit;
+        }
+        .btn-toggle:hover { background: #e5e5e5; }
+
+        textarea {
+            width: 100%; min-height: 90px; border: 2px solid #e0e0e0;
+            border-radius: 8px; padding: 12px 14px; font-size: 14px;
+            font-family: inherit; resize: vertical; transition: border-color 0.2s;
+        }
+        textarea:focus { outline: none; border-color: var(--purple); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; border: none; border-radius: 8px;
+            padding: 13px 28px; font-size: 15px; font-weight: 600;
+            cursor: pointer; font-family: inherit; transition: opacity 0.2s;
+            margin-top: 14px;
+        }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        /* ── Pipeline ── */
+        .pipeline-wrap { overflow-x: auto; padding-bottom: 6px; }
+        .pipeline {
+            display: flex; align-items: center; gap: 0;
+            min-width: max-content; padding: 4px 0;
+        }
+        .p-step { display: flex; align-items: center; }
+        .p-box {
+            text-align: center; font-size: 11px; font-weight: 600;
+            line-height: 1.3; padding: 8px 10px; border-radius: 8px;
+            min-width: 72px; border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .p-box.waiting  { background: #f4f4f4; color: #aaa; border-color: #e8e8e8; }
+        .p-box.active   { background: #fff8e1; color: #e65100; border-color: #ffa000; }
+        .p-box.done     { background: #e8f5e9; color: #2e7d32; border-color: #66bb6a; }
+        .p-box.fail     { background: #ffebee; color: #c62828; border-color: #ef5350; }
+        .p-box.retry    { background: #fce4ec; color: #880e4f; border-color: #ec407a; }
+        .p-arrow { color: #bbb; font-size: 16px; padding: 0 3px; }
+        .p-arrow.loop { color: var(--pink); font-weight: 700; }
+
+        .loop-badge {
+            display: none; margin-top: 10px; font-size: 12px;
+            color: var(--pink); font-weight: 600;
+        }
+
+        /* ── Status bar ── */
+        .status-bar {
+            margin-top: 14px; padding: 10px 16px; border-radius: 8px;
+            font-size: 13px; text-align: center; font-weight: 500;
+        }
+        .status-bar.processing { background: #fff3e0; color: #e65100; }
+        .status-bar.done       { background: #e8f5e9; color: #2e7d32; }
+        .status-bar.error      { background: #ffebee; color: #c62828; }
+
+        /* ── Agent detail panels ── */
+        .agent-log { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; }
+        .log-item { border: 1px solid #e8e8e8; border-radius: 8px; overflow: hidden; }
+        .log-header {
+            background: #fafafa; padding: 10px 16px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 13px; font-weight: 600; color: #444; user-select: none;
+        }
+        .log-header:hover { background: #f0f0f0; }
+        .log-body {
+            display: none; padding: 12px 16px; font-size: 13px;
+            color: #555; white-space: pre-wrap; line-height: 1.6;
+        }
+        .log-body.open { display: block; }
+
+        /* ── Final output ── */
+        .output-box {
+            background: linear-gradient(135deg, #f8f5ff, #f0eeff);
+            border: 2px solid var(--purple); border-radius: 12px; padding: 20px;
+        }
+        .final-bullet {
+            background: white; border-left: 4px solid var(--purple);
+            border-radius: 8px; padding: 16px 18px;
+            font-size: 16px; font-weight: 600; color: #1a1a2e;
+            line-height: 1.5; margin: 12px 0 16px;
+        }
+        .score-pill {
+            display: inline-block; background: var(--purple); color: white;
+            border-radius: 20px; padding: 5px 14px; font-size: 13px; font-weight: 700;
+        }
+        .score-pill.high { background: var(--green); }
+        .score-pill.mid  { background: var(--orange); }
+        .score-pill.low  { background: var(--red); }
+        .explanation { font-size: 13px; color: #555; line-height: 1.6; margin-top: 14px; }
+        .btn-copy {
+            background: var(--green); color: white; border: none;
+            border-radius: 8px; padding: 9px 18px; font-size: 13px;
+            font-weight: 600; cursor: pointer; font-family: inherit;
+            margin-top: 14px; transition: opacity 0.2s;
+        }
+        .btn-copy:hover { opacity: 0.88; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>MBB Resume Bullet Improver</h1>
+    <p class="subtitle">Transform rough bullet points into McKinsey / Bain / BCG quality — powered by a 6-agent pipeline</p>
+
+    <!-- Config -->
+    <div class="card">
+        <div class="card-title">Configuration</div>
+        <label for="apiKey">Anthropic API Key</label>
+        <div class="key-row">
+            <input type="password" id="apiKey" placeholder="sk-ant-...">
+            <button class="btn-toggle" onclick="toggleKey()">Show / Hide</button>
+        </div>
+    </div>
+
+    <!-- Input -->
+    <div class="card">
+        <div class="card-title">Your Rough Draft</div>
+        <label for="bulletInput">Paste your resume bullet below</label>
+        <textarea id="bulletInput" placeholder="e.g., Helped with a project that saved the company money by fixing a slow process in operations"></textarea>
+        <button class="btn-primary" id="runBtn" onclick="run()">Improve My Bullet</button>
+    </div>
+
+    <!-- Pipeline progress -->
+    <div class="card" id="pipelineCard" style="display:none">
+        <div class="card-title">Agent Pipeline</div>
+        <div class="pipeline-wrap">
+            <div class="pipeline">
+                <div class="p-step"><div class="p-box waiting" id="s0">Input<br>Collector</div><span class="p-arrow">→</span></div>
+                <div class="p-step"><div class="p-box waiting" id="s1">Bullet<br>Diagnostic</div><span class="p-arrow">→</span></div>
+                <div class="p-step"><div class="p-box waiting" id="s2">Impact<br>Quantifier</div><span class="p-arrow">→</span></div>
+                <div class="p-step"><div class="p-box waiting" id="s3">MBB<br>Rewrite</div><span class="p-arrow">→</span></div>
+                <div class="p-step"><div class="p-box waiting" id="s4">Hallucination<br>Check</div><span class="p-arrow">→</span></div>
+                <div class="p-step"><div class="p-box waiting" id="s5">LLM-as-a-<br>Judge</div><span class="p-arrow">→</span></div>
+                <div class="p-box waiting" id="s6">Finalized<br>Output</div>
+            </div>
+        </div>
+        <div class="loop-badge" id="loopBadge"></div>
+        <div class="status-bar processing" id="statusBar">Starting pipeline…</div>
+        <div class="agent-log" id="agentLog"></div>
+    </div>
+
+    <!-- Final output -->
+    <div class="card" id="outputCard" style="display:none">
+        <div class="card-title">Finalized Resume Bullet</div>
+        <div class="output-box">
+            <div class="final-bullet" id="finalBullet"></div>
+            <span class="score-pill" id="scorePill">Score: —</span>
+            <div class="explanation" id="finalExplanation"></div>
+            <button class="btn-copy" onclick="copyBullet()">Copy Bullet</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleKey() {
+        const k = document.getElementById('apiKey');
+        k.type = k.type === 'password' ? 'text' : 'password';
+    }
+
+    function step(id, state) {
+        document.getElementById(id).className = `p-box ${state}`;
+    }
+
+    function setStatus(msg, type = 'processing') {
+        const b = document.getElementById('statusBar');
+        b.textContent = msg;
+        b.className = `status-bar ${type}`;
+    }
+
+    function addLog(title, content) {
+        const log = document.getElementById('agentLog');
+        const item = document.createElement('div');
+        item.className = 'log-item';
+        item.innerHTML = `
+            <div class="log-header" onclick="toggle(this)">
+                <span>${title}</span><span>▼</span>
+            </div>
+            <div class="log-body">${content}</div>`;
+        log.appendChild(item);
+    }
+
+    function toggle(hdr) {
+        const body = hdr.nextElementSibling;
+        body.classList.toggle('open');
+        hdr.querySelector('span:last-child').textContent =
+            body.classList.contains('open') ? '▲' : '▼';
+    }
+
+    async function api(system, user, tokens = 900) {
+        const key = document.getElementById('apiKey').value.trim();
+        const r = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': key,
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-6',
+                max_tokens: tokens,
+                system,
+                messages: [{ role: 'user', content: user }]
+            })
+        });
+        if (!r.ok) {
+            const e = await r.json().catch(() => ({}));
+            throw new Error(e.error?.message || `HTTP ${r.status}`);
+        }
+        return (await r.json()).content[0].text;
+    }
+
+    async function run() {
+        const bullet = document.getElementById('bulletInput').value.trim();
+        const key    = document.getElementById('apiKey').value.trim();
+        if (!key)    { alert('Please enter your Anthropic API key.'); return; }
+        if (!bullet) { alert('Please enter a resume bullet.'); return; }
+
+        // Reset UI
+        document.getElementById('pipelineCard').style.display = 'block';
+        document.getElementById('outputCard').style.display   = 'none';
+        document.getElementById('agentLog').innerHTML = '';
+        document.getElementById('loopBadge').style.display = 'none';
+        document.getElementById('runBtn').disabled = true;
+        ['s0','s1','s2','s3','s4','s5','s6'].forEach(id => step(id, 'waiting'));
+
+        try {
+            // ── Agent 1: Input Collector ──────────────────────────────────
+            step('s0', 'active');
+            setStatus('Input Collector Agent is validating your bullet…');
+            const a1 = await api(
+                `You are the Input Collector Agent in a resume bullet improvement pipeline.
+Your job:
+1. Confirm receipt of the bullet.
+2. Identify the apparent role/industry context.
+3. Note the core action or accomplishment described.
+4. Flag any obviously missing context (role level, industry, scale).
+Be concise — 3–5 sentences max.`,
+                `Resume bullet: "${bullet}"`
+            );
+            step('s0', 'done');
+            addLog('1 · Input Collector Agent', a1);
+
+            // ── Agent 2: Bullet Diagnostic ────────────────────────────────
+            step('s1', 'active');
+            setStatus('Bullet Diagnostic Agent is analyzing weaknesses…');
+            const a2 = await api(
+                `You are the Bullet Diagnostic Agent. Evaluate resume bullets for MBB-readiness.
+Rate and comment on:
+• Action verb strength (weak / moderate / strong)
+• Quantification (none / partial / good)
+• Specificity (vague / moderate / specific)
+• Impact clarity (unclear / moderate / clear)
+List each issue as a short bullet. Be direct.`,
+                `Analyze: "${bullet}"`
+            );
+            step('s1', 'done');
+            addLog('2 · Bullet Diagnostic Agent', a2);
+
+            // ── Agent 3: Impact Quantifier ────────────────────────────────
+            step('s2', 'active');
+            setStatus('Impact Quantifier Agent is identifying metrics opportunities…');
+            const a3 = await api(
+                `You are the Impact Quantifier Agent.
+For the given bullet:
+• If numbers exist, suggest how to frame them more powerfully.
+• If numbers are missing, specify exactly what type of metric would help (%, $, headcount, hours saved, etc.) and where to insert it.
+• Label each suggestion as (must ask user) or (can infer from context).
+Keep it tight — 4–6 bullet points.`,
+                `Original: "${bullet}"\nDiagnostic: ${a2}`
+            );
+            step('s2', 'done');
+            addLog('3 · Impact Quantifier Agent', a3);
+
+            // ── Rewrite loop (Agents 4 → 5 → 6) ─────────────────────────
+            let rewrite = '';
+            let judgeRaw = '';
+            let score = 0;
+            let prevFeedback = '';
+            const MAX = 3;
+
+            for (let attempt = 1; attempt <= MAX; attempt++) {
+                const isRetry = attempt > 1;
+                if (isRetry) {
+                    const badge = document.getElementById('loopBadge');
+                    badge.style.display = 'block';
+                    badge.textContent = `↺ Refinement pass ${attempt} of ${MAX} — incorporating judge feedback`;
+                }
+
+                // Agent 4: MBB Rewrite
+                step('s3', isRetry ? 'retry' : 'active');
+                setStatus(`MBB Rewrite Agent — drafting bullet (attempt ${attempt})…`);
+                const rewriteCtx = isRetry
+                    ? `Original: "${bullet}"\nPrevious draft: "${rewrite}"\nJudge feedback: ${prevFeedback}\nQuantification notes: ${a3}\nRewrite with improvements:`
+                    : `Original: "${bullet}"\nDiagnostic: ${a2}\nQuantification notes: ${a3}\nWrite the improved bullet:`;
+
+                rewrite = await api(
+                    `You are an elite MBB (McKinsey / Bain / BCG) resume writer.
+Rules:
+1. Open with a strong action verb (Led, Drove, Delivered, Spearheaded, Engineered, Accelerated…).
+2. Include quantified impact where the original supports it; use [X%] / [$Xk] placeholders where data is unknown — do NOT invent numbers.
+3. Close with strategic context (why it mattered / business outcome).
+4. Maximum 25–30 words, one line.
+5. Past tense for past roles, present for current.
+Output ONLY the rewritten bullet — no preamble, no explanation.`,
+                    rewriteCtx
+                );
+                step('s3', 'done');
+                addLog(`4 · MBB Rewrite Agent (attempt ${attempt})`, rewrite);
+
+                // Agent 5: Hallucination Check
+                step('s4', isRetry ? 'retry' : 'active');
+                setStatus('Hallucination Check Agent is verifying accuracy…');
+                const a5 = await api(
+                    `You are the Hallucination Detection Agent.
+Compare the REWRITE against the ORIGINAL bullet.
+Flag any claim, number, or fact in the rewrite that cannot be found in or directly inferred from the original.
+Placeholders like [X%] are acceptable — not hallucinations.
+Output exactly:
+VERDICT: PASS or FAIL
+ISSUES: <list issues, or "None">`,
+                    `Original: "${bullet}"\nRewrite: "${rewrite}"`
+                );
+                step('s4', 'done');
+                addLog(`5 · Hallucination Check (attempt ${attempt})`, a5);
+
+                if (a5.includes('VERDICT: FAIL') && attempt < MAX) {
+                    step('s4', 'fail');
+                    prevFeedback = `Hallucination detected — ${a5}. Strip any invented details.`;
+                    continue;
+                }
+
+                // Agent 6: LLM-as-a-Judge
+                step('s5', isRetry ? 'retry' : 'active');
+                setStatus('LLM-as-a-Judge is scoring your bullet…');
+                judgeRaw = await api(
+                    `You are an expert judge scoring a resume bullet for MBB consulting quality.
+Score 1–10 across five criteria worth 2 pts each:
+  1. Action verb strength
+  2. Quantified impact
+  3. Strategic framing
+  4. Conciseness & precision
+  5. Overall MBB polish
+PASS threshold: score ≥ 7
+
+Respond in EXACTLY this format (no extra text):
+SCORE: X/10
+BREAKDOWN:
+• Criterion 1: comment
+• Criterion 2: comment
+• Criterion 3: comment
+• Criterion 4: comment
+• Criterion 5: comment
+VERDICT: PASS or FAIL
+FEEDBACK: one sentence of the single most important improvement (or "Excellent — no changes needed" if PASS)`,
+                    `Original: "${bullet}"\nRewrite: "${rewrite}"`
+                );
+                step('s5', 'done');
+                addLog(`6 · LLM-as-a-Judge (attempt ${attempt})`, judgeRaw);
+
+                const sm = judgeRaw.match(/SCORE:\s*(\d+)/);
+                score = sm ? parseInt(sm[1]) : 7;
+                const pass = judgeRaw.includes('VERDICT: PASS') || score >= 7;
+
+                if (pass || attempt === MAX) break;
+
+                const fm = judgeRaw.match(/FEEDBACK:([\s\S]*?)$/);
+                prevFeedback = fm ? fm[1].trim() : 'Improve quality and specificity.';
+            }
+
+            // ── Final output ─────────────────────────────────────────────
+            step('s6', 'done');
+            setStatus('Pipeline complete — your improved bullet is ready.', 'done');
+
+            document.getElementById('finalBullet').textContent = rewrite;
+
+            const pill = document.getElementById('scorePill');
+            pill.textContent = `Score: ${score}/10`;
+            pill.className = 'score-pill ' + (score >= 8 ? 'high' : score >= 6 ? 'mid' : 'low');
+
+            const bdMatch = judgeRaw.match(/BREAKDOWN:([\s\S]*?)(?:VERDICT:|$)/);
+            const bdText  = bdMatch ? bdMatch[1].trim() : '';
+            const fbMatch = judgeRaw.match(/FEEDBACK:([\s\S]*?)$/);
+            const fbText  = fbMatch ? fbMatch[1].trim() : '';
+            document.getElementById('finalExplanation').innerHTML =
+                `<strong>Score breakdown:</strong><br>${bdText.replace(/\n/g,'<br>')}` +
+                (fbText ? `<br><br><strong>Key takeaway:</strong> ${fbText}` : '');
+
+            document.getElementById('outputCard').style.display = 'block';
+            document.getElementById('outputCard').scrollIntoView({ behavior: 'smooth' });
+
+        } catch (err) {
+            setStatus('Error: ' + err.message, 'error');
+            ['s0','s1','s2','s3','s4','s5'].forEach(id => {
+                if (document.getElementById(id).className.includes('active') ||
+                    document.getElementById(id).className.includes('retry')) {
+                    step(id, 'fail');
+                }
+            });
+        } finally {
+            document.getElementById('runBtn').disabled = false;
+        }
+    }
+
+    function copyBullet() {
+        const text = document.getElementById('finalBullet').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.querySelector('.btn-copy');
+            const orig = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = orig, 2000);
+        });
+    }
+</script>
+</body>
+</html>
