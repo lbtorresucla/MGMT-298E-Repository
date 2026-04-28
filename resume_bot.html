@@ -441,17 +441,25 @@ Keep it tight — 4–6 bullet points.`,
             let userContext = '';
             try {
                 const clarifyRaw = await api(
-                    `You are a resume coach. Given a bullet's diagnostic and quantification analysis, decide if the user needs to be asked for more information before rewriting.
-If the bullet already has enough specifics, output exactly: {"questions":[]}
-If key details are missing, output 2–3 questions that will most improve the rewrite. Each question MUST include concrete examples drawn from this list to jog the user's memory:
-- Financial impact: money saved, cost reduced, revenue generated, budget managed, deals closed, ROI
-- Efficiency: time saved, process speed improvement, error rate reduction, automation coverage
-- Scale: team size managed, number of clients/users, volume of transactions, geographic reach
-- Growth: % increase in sales, user growth, market share gained, retention improvement
-- Output: number of projects delivered, reports produced, features shipped, initiatives launched
-Write each question in plain conversational language and embed the most relevant examples in parentheses.
-Focus only on information the user would actually know (their own numbers, outcomes, team size, etc.).
-Output ONLY valid JSON. Example: {"questions":["What was the financial impact? (e.g. cost savings, revenue generated, budget managed)","How large was the scale? (e.g. team size, number of users, transaction volume)"]}`,
+                    `You are a resume coach reviewing a resume bullet before rewriting it.
+Your job: identify which of the following details are MISSING from the original bullet, and ask one question per missing detail.
+Only ask about a detail if it is genuinely absent — do not ask if the bullet already states it clearly.
+
+Detail categories to check (ask about each one that is missing):
+1. Quantity — specific numbers, counts, or volumes (e.g. number of reports, clients, SKUs, transactions)
+2. Timeline — how long the project/task took, or when it happened (e.g. within 3 months, over 2 years)
+3. Outcome — what was the end result or deliverable (e.g. launched product, closed deal, passed audit)
+4. Financial Impact — money saved, cost reduced, revenue generated, budget managed, deals closed, ROI
+5. Scale — team size, number of users/customers, geographic reach, size of system or dataset
+6. Efficiency Gains — time saved, process speed improvement, error rate reduction, automation coverage
+7. Other Impact — any other measurable or notable effect (e.g. employee satisfaction, NPS, retention, risk reduction)
+
+Rules:
+- Ask ONLY for details that are missing. Skip any category already answered by the bullet.
+- Each question must include 2–3 parenthetical examples to jog the user's memory.
+- Write questions in plain, conversational language.
+- If the bullet is already fully specific, output: {"questions":[]}
+- Output ONLY valid JSON: {"questions":["question 1","question 2",...]}`,
                     `Original bullet: "${bullet}"\nDiagnostic:\n${a2}\nQuantification notes:\n${a3}`
                 );
                 const parsed = JSON.parse(clarifyRaw.match(/\{[\s\S]*\}/)[0]);
