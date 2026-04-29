@@ -147,6 +147,20 @@
         }
         .btn-copy:hover { opacity: 0.88; }
 
+        /* ── Original bullet section ── */
+        .orig-label { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+        .orig-bullet {
+            background: #f8fafc; border-left: 4px solid #94a3b8;
+            border-radius: 8px; padding: 14px 16px;
+            font-size: 15px; color: #475569; line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        .bullet-divider {
+            text-align: center; font-size: 13px; font-weight: 700;
+            color: var(--purple); margin: 20px 0 16px;
+            letter-spacing: 0.03em;
+        }
+
         /* ── Clarification card ── */
         .clarify-card {
             background: #fff;
@@ -243,7 +257,17 @@
 
     <!-- Final output -->
     <div class="card" id="outputCard" style="display:none">
-        <div class="card-title">Finalized Resume Bullet</div>
+        <div class="card-title">Results</div>
+
+        <!-- Original bullet score -->
+        <div class="orig-label">Original Bullet</div>
+        <div class="orig-bullet" id="origBullet"></div>
+        <span class="score-pill" id="origScorePill">Score: —</span>
+        <div class="explanation" id="origExplanation"></div>
+
+        <div class="bullet-divider">▼ Improved by PointStack.AI</div>
+
+        <!-- Improved bullet -->
         <div class="output-box">
             <div class="final-bullet" id="finalBullet"></div>
             <span class="score-pill" id="scorePill">Score: —</span>
@@ -404,6 +428,37 @@ Be concise — 3–5 sentences max.`,
             );
             step('s0', 'done');
             addLog('1 · Input Collector Agent', a1);
+
+            // ── Score original bullet ─────────────────────────────────────
+            setStatus('Scoring your original bullet for comparison…');
+            let origScore = 0;
+            let origJudgeRaw = '';
+            try {
+                origJudgeRaw = await api(
+                    `You are an expert judge scoring a resume bullet for MBB consulting quality.
+Score 1–10 across five criteria worth 2 pts each:
+  1. Action verb strength
+  2. Quantified impact
+  3. Strategic framing
+  4. Conciseness & precision
+  5. Overall MBB polish
+PASS threshold: score ≥ 7
+
+Respond in EXACTLY this format (no extra text):
+SCORE: X/10
+BREAKDOWN:
+• Criterion 1: comment
+• Criterion 2: comment
+• Criterion 3: comment
+• Criterion 4: comment
+• Criterion 5: comment
+VERDICT: PASS or FAIL
+FEEDBACK: one sentence of the single most important improvement (or "Excellent — no changes needed" if PASS)`,
+                    `Score this bullet as-is: "${bullet}"`
+                );
+                const om = origJudgeRaw.match(/SCORE:\s*(\d+)/);
+                origScore = om ? parseInt(om[1]) : 0;
+            } catch (_) { /* non-fatal */ }
 
             // ── Agent 2: Bullet Diagnostic ────────────────────────────────
             step('s1', 'active');
@@ -579,12 +634,21 @@ FEEDBACK: one sentence of the single most important improvement (or "Excellent �
             step('s6', 'done');
             setStatus('Pipeline complete — your improved bullet is ready.', 'done');
 
-            document.getElementById('finalBullet').textContent = rewrite;
+            // Original bullet
+            document.getElementById('origBullet').textContent = bullet;
+            const origPill = document.getElementById('origScorePill');
+            origPill.textContent = `Score: ${origScore}/10`;
+            origPill.className = 'score-pill ' + (origScore >= 8 ? 'high' : origScore >= 6 ? 'mid' : 'low');
+            const obdMatch = origJudgeRaw.match(/BREAKDOWN:([\s\S]*?)(?:VERDICT:|$)/);
+            const obdText  = obdMatch ? obdMatch[1].trim() : '';
+            document.getElementById('origExplanation').innerHTML =
+                obdText ? `<strong>Score breakdown:</strong><br>${obdText.replace(/\n/g,'<br>')}` : '';
 
+            // Improved bullet
+            document.getElementById('finalBullet').textContent = rewrite;
             const pill = document.getElementById('scorePill');
             pill.textContent = `Score: ${score}/10`;
             pill.className = 'score-pill ' + (score >= 8 ? 'high' : score >= 6 ? 'mid' : 'low');
-
             const bdMatch = judgeRaw.match(/BREAKDOWN:([\s\S]*?)(?:VERDICT:|$)/);
             const bdText  = bdMatch ? bdMatch[1].trim() : '';
             const fbMatch = judgeRaw.match(/FEEDBACK:([\s\S]*?)$/);
