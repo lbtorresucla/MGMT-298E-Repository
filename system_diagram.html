@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PointStack.AI — System Diagram</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 30px 20px;
+    }
+    .wrap {
+      max-width: 1260px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+      padding: 36px 32px 32px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 22px;
+      color: #2c3e50;
+      margin-bottom: 4px;
+    }
+    .tagline {
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 28px;
+    }
+    svg { display: block; width: 100%; }
+
+    /* ── Agent table ── */
+    .agent-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 32px;
+      font-size: 13px;
+    }
+    .agent-table th {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .agent-table th:first-child { border-radius: 8px 0 0 0; }
+    .agent-table th:last-child  { border-radius: 0 8px 0 0; }
+    .agent-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f0f0f0;
+      vertical-align: top;
+      line-height: 1.5;
+      color: #444;
+    }
+    .agent-table tr:last-child td { border-bottom: none; }
+    .agent-table tr:nth-child(even) td { background: #fafafa; }
+    .badge {
+      display: inline-block;
+      border-radius: 12px;
+      padding: 2px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge-purple { background: #f3e8ff; color: #6b21a8; }
+    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+    .badge-orange { background: #fef3c7; color: #92400e; }
+    .badge-green  { background: #dcfce7; color: #15803d; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PointStack.AI — System Diagram</h1>
+  <p class="tagline">6-agent pipeline with conditional clarification and quality retry loop</p>
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 390">
+    <defs>
+      <marker id="a"  markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#64748b"/></marker>
+      <marker id="ar" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#dc2626"/></marker>
+      <marker id="ao" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#d97706"/></marker>
+      <marker id="ag" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#16a34a"/></marker>
+    </defs>
+
+    <!-- ═══════════════════════════════════════════════════════
+         MAIN PIPELINE BOXES  (y=130, h=68)
+         Centers x: 65 205 345 485 625 765 905 1045
+    ════════════════════════════════════════════════════════ -->
+
+    <!-- 1. User Input -->
+    <rect x="10"  y="130" width="110" height="68" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text x="65"  y="155" text-anchor="middle" font-size="11" font-weight="700" fill="#1d4ed8" font-family="Segoe UI,sans-serif">User Enters</text>
+    <text x="65"  y="170" text-anchor="middle" font-size="11" font-weight="700" fill="#1d4ed8" font-family="Segoe UI,sans-serif">Rough Draft</text>
+    <text x="65"  y="208" text-anchor="middle" font-size="9"  fill="#94a3b8" font-family="Segoe UI,sans-serif">Resume bullet input</text>
+
+    <line x1="120" y1="164" x2="145" y2="164" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+    <!-- 2. Input Collector -->
+    <rect x="147" y="130" width="116" height="68" rx="8" fill="#f3e8ff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="205" y="153" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6" font-family="Segoe UI,sans-serif">Input</text>
+    <text x="205" y="168" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6" font-family="Segoe UI,sans-serif">Collector</text>
+    <text x="205" y="183" text-anchor="middle" font-size="9"  fill="#7c3aed" font-family="Segoe UI,sans-serif">Agent</text>
+    <text x="205" y="208" text-anchor="middle" font-size="9"  fill="#94a3b8" font-family="Segoe UI,sans-serif">Validates &amp; identifies</text>
+    <text x="205" y="219" text-anchor="middle" font-size="9"  fill="#94a3b8" font-family="Segoe UI,sans-serif">role / industry context</text>
+
+    <line x1="263" y1="164" x2="288" y2="164" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+    <!-- 3. Bullet Diagnostic -->
+    <rect x="290" y="130" width="110" height="68" rx="8" fill="#f3e8ff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="345" y="153" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6" font-family="Segoe UI,sans-serif">Bullet</text>
+    <text x="345" y="168" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6" font-family="Segoe UI,sans-serif">Diagnostic</text>
+    <text x="345" y="183" text-anchor="middle" font-size="9"  fill="#7c3aed" font-family="Segoe UI,sans-serif">Agent</text>
+    <text x="345" y="208" text-anchor="middle" font-size="9"  fill="#94a3b8" font-family="Segoe UI,sans-serif">Scores verb, metrics,</text>
+    <text x="345" y="219" text-anchor="middle" font-size="9"  fill="#94a3b8" font-family="Segoe UI,sans-serif">specificity &amp; impact</text>
+
+    <line x1="400" y1="164" x2="425" y2="164" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+    <!-- 4. Impact Quantifier -->
+    <rect x="427" y="130" width="116" height="68" rx="8" fill="#f3e8ff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="485" y="153" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6" font-family="Segoe UI,sans-serif">Impact</text>
+    <text x="485" y="168" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6" font-family="Segoe UI,sans-serif">Quantifier</text>
+    <text x="485" y="183" text-anchor="middle" font-size="9"  fill="#7c3aed" font-family="Segoe UI,sans-serif">Agent</text>
+    <text x="485" y="208" text-anchor="middle" font-size="9"  fill="#94a3b8" font-family="Segoe UI,sans-serif">Identifies where &amp; what</text>
+    <text x="485" y="219" text-anchor="middle" font-size="9"  fill="#94a3b8" font-family="Segoe UI,sans-serif">metrics to add</text>
+
+    <line x1="543" y1="164" x2="568" y2="164" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+    <!-- 5. MBB Rewrite -->
+    <rect x="570" y="130" width="110" height="68" rx="8" fill="#f3e8ff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="625" y="153" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6" font-family="Segoe UI,sans-serif">MBB</text>
+    <text x="625" y="168" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6" font-family="Segoe UI,sans-serif">Rewrite</text>
+    <text x="625" y="183" text-anchor="middle" font-size="9"  fill="#7c3aed" font-family="Segoe UI,sans-serif">Agent</text>
+    <text x="625" y="208" text-anchor="middle" font-size="9"  fill="#94a3b8" font-family="Segoe UI,sans-serif">Strong verb + impact</text>
+    <text x="625" y="219" text-anchor="middle" font-size="9"  fill="#94a3b8" font-family="Segoe UI,sans-serif">+ strategic context</text>
+
+    <line x1="680" y1="164" x2="705" y2="164" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+    <!-- 6. Hallucination Check -->
+    <rect x="707" y="130" width="116" height="68" rx="8" fill="#f3e8ff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="765" y="153" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6" font-family="Segoe UI,sans-serif">Hallucination</text>
+    <text x="765" y="168" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6" font-family="Segoe UI,sans-serif">Check</text>
+    <text x="765" y="183" text-anchor="middle" font-size="9"  fill="#7c3aed" font-family="Segoe UI,sans-serif">Agent</text>
+    <text x="765" y="208" text-anchor="middle" font-size="9"  fill="#94a3b8" font-family="Segoe UI,sans-serif">Flags facts not present</text>
+    <text x="765" y="219" text-anchor="middle" font-size="9"  fill="#94a3b8" font-family="Segoe UI,sans-serif">in original bullet</text>
+
+    <line x1="823" y1="164" x2="848" y2="164" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+    <!-- 7. LLM Judge -->
+    <rect x="850" y="130" width="110" height="68" rx="8" fill="#f3e8ff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="905" y="153" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6" font-family="Segoe UI,sans-serif">LLM-as-a-</text>
+    <text x="905" y="168" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6" font-family="Segoe UI,sans-serif">Judge</text>
+    <text x="905" y="183" text-anchor="middle" font-size="9"  fill="#7c3aed" font-family="Segoe UI,sans-serif">Scoring Agent</text>
+    <text x="905" y="208" text-anchor="middle" font-size="9"  fill="#94a3b8" font-family="Segoe UI,sans-serif">Scores 1–10 across</text>
+    <text x="905" y="219" text-anchor="middle" font-size="9"  fill="#94a3b8" font-family="Segoe UI,sans-serif">5 quality criteria</text>
+
+    <!-- Arrow 7→8  Pass -->
+    <line x1="960" y1="164" x2="986" y2="164" stroke="#16a34a" stroke-width="2" marker-end="url(#ag)"/>
+    <text x="973" y="156" text-anchor="middle" font-size="9" fill="#16a34a" font-weight="700" font-family="Segoe UI,sans-serif">Pass</text>
+
+    <!-- 8. Final Output -->
+    <rect x="988"  y="130" width="110" height="68" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text x="1043" y="153" text-anchor="middle" font-size="11" font-weight="700" fill="#15803d" font-family="Segoe UI,sans-serif">Finalized</text>
+    <text x="1043" y="168" text-anchor="middle" font-size="11" font-weight="700" fill="#15803d" font-family="Segoe UI,sans-serif">Output</text>
+    <text x="1043" y="183" text-anchor="middle" font-size="9"  fill="#16a34a" font-family="Segoe UI,sans-serif">Bullet + Score</text>
+    <text x="1043" y="208" text-anchor="middle" font-size="9"  fill="#94a3b8" font-family="Segoe UI,sans-serif">Final bullet, 1–10 score</text>
+    <text x="1043" y="219" text-anchor="middle" font-size="9"  fill="#94a3b8" font-family="Segoe UI,sans-serif">&amp; full breakdown</text>
+
+    <!-- ═══════════════════════════════════════════════════════
+         CONDITIONAL CLARIFICATION BRANCH
+    ════════════════════════════════════════════════════════ -->
+    <!-- Down from Impact Quantifier bottom -->
+    <line x1="485" y1="198" x2="485" y2="267" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ao)"/>
+    <text x="500" y="240" font-size="9" fill="#b45309" font-style="italic" font-family="Segoe UI,sans-serif">if vague</text>
+
+    <!-- Clarification box -->
+    <rect x="415" y="269" width="140" height="68" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+    <text x="485" y="291" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e" font-family="Segoe UI,sans-serif">User</text>
+    <text x="485" y="306" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e" font-family="Segoe UI,sans-serif">Clarification</text>
+    <text x="485" y="321" text-anchor="middle" font-size="9"  fill="#b45309" font-family="Segoe UI,sans-serif">Up to 8 questions</text>
+
+    <!-- Right then up to MBB Rewrite -->
+    <path d="M 555 303 L 625 303 L 625 198" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5,3" fill="none" marker-end="url(#ao)"/>
+    <text x="645" y="255" font-size="9" fill="#b45309" font-family="Segoe UI,sans-serif">with</text>
+    <text x="645" y="266" font-size="9" fill="#b45309" font-family="Segoe UI,sans-serif">answers</text>
+
+    <!-- 8 question categories label -->
+    <text x="485" y="358" text-anchor="middle" font-size="8" fill="#b45309" font-family="Segoe UI,sans-serif">Quantity · Type · Timeline · Outcome</text>
+    <text x="485" y="369" text-anchor="middle" font-size="8" fill="#b45309" font-family="Segoe UI,sans-serif">Financial · Scale · Efficiency · Other</text>
+
+    <!-- ═══════════════════════════════════════════════════════
+         FAIL / RETRY LOOPS  (arcs above pipeline)
+    ════════════════════════════════════════════════════════ -->
+    <!-- Hallucination fail → MBB Rewrite (dashed, tighter arc) -->
+    <path d="M 765 130 L 765 88 L 625 88 L 625 130"
+          stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5,3" fill="none" marker-end="url(#ar)"/>
+    <text x="700" y="82" text-anchor="middle" font-size="9" fill="#dc2626" font-weight="600" font-family="Segoe UI,sans-serif">Fail (hallucination)</text>
+
+    <!-- Judge fail → MBB Rewrite (solid, higher arc) -->
+    <path d="M 905 130 L 905 60 L 625 60 L 625 130"
+          stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+    <text x="765" y="52" text-anchor="middle" font-size="9" fill="#dc2626" font-weight="600" font-family="Segoe UI,sans-serif">Fail  —  score &lt; 7  (up to 3×)</text>
+
+    <!-- ═══════════════════════════════════════════════════════
+         LEGEND
+    ════════════════════════════════════════════════════════ -->
+    <rect x="10" y="390" width="1090" height="1" fill="#e2e8f0"/>
+
+    <!-- legend items (y=375 - inside viewBox) - placed above bottom edge -->
+    <rect x="10"  y="373" width="10" height="10" rx="2" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="25"  y="382" font-size="9" fill="#555" font-family="Segoe UI,sans-serif">Input / Output</text>
+
+    <rect x="115" y="373" width="10" height="10" rx="2" fill="#f3e8ff" stroke="#7c3aed" stroke-width="1.5"/>
+    <text x="130" y="382" font-size="9" fill="#555" font-family="Segoe UI,sans-serif">AI Agent</text>
+
+    <rect x="200" y="373" width="10" height="10" rx="2" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="215" y="382" font-size="9" fill="#555" font-family="Segoe UI,sans-serif">Conditional Step</text>
+
+    <line x1="330" y1="378" x2="350" y2="378" stroke="#16a34a" stroke-width="1.5" marker-end="url(#ag)"/>
+    <text x="356" y="382" font-size="9" fill="#555" font-family="Segoe UI,sans-serif">Pass</text>
+
+    <line x1="405" y1="378" x2="425" y2="378" stroke="#dc2626" stroke-width="1.5" marker-end="url(#ar)"/>
+    <text x="431" y="382" font-size="9" fill="#555" font-family="Segoe UI,sans-serif">Fail → Retry (score)</text>
+
+    <line x1="560" y1="378" x2="580" y2="378" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#ar)"/>
+    <text x="586" y="382" font-size="9" fill="#555" font-family="Segoe UI,sans-serif">Fail → Retry (hallucination)</text>
+
+    <line x1="750" y1="378" x2="770" y2="378" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#ao)"/>
+    <text x="776" y="382" font-size="9" fill="#555" font-family="Segoe UI,sans-serif">Conditional path</text>
+  </svg>
+
+  <!-- ── Agent Descriptions Table ── -->
+  <table class="agent-table">
+    <thead>
+      <tr>
+        <th style="width:22%">Agent</th>
+        <th style="width:40%">What it does</th>
+        <th style="width:38%">Key outputs</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-blue">Input Collector</span></td>
+        <td>Receives the rough bullet and identifies the apparent role, industry, and core accomplishment. Flags any obviously missing context (level, scope, industry).</td>
+        <td>Structured summary of what the bullet is about and what context is present or absent.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-purple">Bullet Diagnostic</span></td>
+        <td>Evaluates the bullet on four dimensions: action verb strength, quantification, specificity, and impact clarity. Rates each as weak / moderate / strong.</td>
+        <td>Diagnostic scorecard with specific issues to fix before rewriting.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-purple">Impact Quantifier</span></td>
+        <td>Identifies every opportunity to add or strengthen metrics. Labels each suggestion as <em>must ask user</em> or <em>can infer from context</em>.</td>
+        <td>List of specific metric types to insert (%, $, headcount, time saved, etc.) and where they belong.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-orange">User Clarification</span><br><small style="color:#b45309">(conditional)</small></td>
+        <td>If the bullet is vague, pauses the pipeline and asks the user up to 8 targeted questions — one per missing detail — with examples to jog memory.</td>
+        <td>Covers: <strong>Quantity · Type · Timeline · Outcome · Financial Impact · Scale · Efficiency Gains · Other Impact.</strong> Skipped if bullet is already specific.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-purple">MBB Rewrite</span></td>
+        <td>Rewrites the bullet in McKinsey / Bain / BCG style. <strong>Must open with a verb from <code>strong_resume_verbs.json</code></strong> (9 categories). Incorporates all user-provided context and quantification notes. Max 25–30 words.</td>
+        <td>Single polished bullet: [Strong verb] + [quantified impact] + [strategic context]. Placeholders like [X%] used where data is unknown.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-purple">Hallucination Check</span></td>
+        <td>Compares the rewritten bullet against the original. Flags any claim, number, or fact that was not present in or directly inferable from the original. Placeholders are acceptable — not hallucinations.</td>
+        <td><strong>PASS</strong> (proceeds) or <strong>FAIL</strong> (loops back to MBB Rewrite with instructions to strip invented details).</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-purple">LLM-as-a-Judge</span></td>
+        <td>Scores the rewritten bullet 1–10 across five 2-point criteria: action verb strength, quantified impact, strategic framing, conciseness, and overall MBB polish. Pass threshold is ≥ 7.</td>
+        <td>Score, per-criterion breakdown, PASS / FAIL verdict, and one actionable feedback sentence. Loops back to MBB Rewrite (up to 3 attempts) if score &lt; 7.</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-green">Finalized Output</span></td>
+        <td>Displays the approved bullet with its score badge (green ≥ 8, orange ≥ 6, red &lt; 6), full score breakdown, and a one-click copy button.</td>
+        <td>Final polished resume bullet ready to paste into your resume.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>
