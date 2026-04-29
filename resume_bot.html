@@ -632,7 +632,21 @@ FEEDBACK: one sentence of the single most important improvement (or "Excellent �
 
             // ── Final output ─────────────────────────────────────────────
             step('s6', 'done');
-            setStatus('Pipeline complete — your improved bullet is ready.', 'done');
+
+            // If original already scores higher, keep it
+            const keepOriginal = origScore > score;
+            if (keepOriginal) {
+                rewrite   = bullet;
+                judgeRaw  = origJudgeRaw;
+                score     = origScore;
+            }
+
+            setStatus(
+                keepOriginal
+                    ? `Original bullet outscored the rewrite (${origScore} vs ${score === origScore ? '—' : score}) — keeping your original.`
+                    : 'Pipeline complete — your improved bullet is ready.',
+                'done'
+            );
 
             // Original bullet
             document.getElementById('origBullet').textContent = bullet;
@@ -644,8 +658,12 @@ FEEDBACK: one sentence of the single most important improvement (or "Excellent �
             document.getElementById('origExplanation').innerHTML =
                 obdText ? `<strong>Score breakdown:</strong><br>${obdText.replace(/\n/g,'<br>')}` : '';
 
-            // Improved bullet
+            // Improved bullet (or original if it won)
             document.getElementById('finalBullet').textContent = rewrite;
+            if (keepOriginal) {
+                document.querySelector('.bullet-divider').textContent = '✓ Original bullet retained — it already scores higher';
+                document.getElementById('finalBullet').style.borderLeftColor = '#16a34a';
+            }
             const pill = document.getElementById('scorePill');
             pill.textContent = `Score: ${score}/10`;
             pill.className = 'score-pill ' + (score >= 8 ? 'high' : score >= 6 ? 'mid' : 'low');
